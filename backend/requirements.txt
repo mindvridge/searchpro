@@ -9,7 +9,6 @@ httpx==0.28.1
 apscheduler==3.10.4
 python-dotenv==1.0.1
 joserfc==1.6.3
-# password hashing uses stdlib hashlib (PBKDF2-SHA256)
 python-multipart==0.0.20
 cachetools==5.5.1
 beautifulsoup4==4.12.3

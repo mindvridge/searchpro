@@ -1,35 +1,30 @@
 services:
   postgres:
     image: postgres:16
-    restart: unless-stopped
+    restart: always
     environment:
-      POSTGRES_DB: govfinder
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-govfinder}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
     build:
       context: ./backend
-      target: development
-    restart: unless-stopped
+      target: production
+    restart: always
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend:/app
     env_file:
-      - .env
+      - .env.production
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/govfinder
-      ENV: development
+      ENV: production
     depends_on:
       postgres:
         condition: service_healthy
