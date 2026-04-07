@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { QueryProvider } from "@/lib/queryClient";
+import { AuthProvider } from "@/lib/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
+        <AuthProvider>
         <QueryProvider>
           <Header />
           <div className="container mx-auto flex flex-1 gap-6 px-4 py-6">
@@ -41,6 +43,7 @@ export default function RootLayout({
           <Footer />
           <Toaster />
         </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );
