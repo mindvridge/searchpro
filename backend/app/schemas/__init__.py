@@ -2,7 +2,10 @@ from app.schemas.program import (
     ProgramCreate,
     ProgramUpdate,
     ProgramResponse,
+    ProgramListItem,
     ProgramListResponse,
+    ProgramDetailResponse,
+    ProgramStats,
 )
 from app.schemas.user import UserCreate, UserUpdate, UserResponse
 from app.schemas.bookmark import BookmarkCreate, BookmarkUpdate, BookmarkResponse
