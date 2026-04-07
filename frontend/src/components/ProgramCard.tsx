@@ -36,6 +36,11 @@ export function ProgramCard({ program, onBookmark, isBookmarked }: Props) {
             {program.status === "UPCOMING" && (
               <Badge variant="secondary" className="text-xs">예정</Badge>
             )}
+            {(program.source === "THINKCONTEST" || program.source === "WEVITY") && (
+              <Badge variant="secondary" className="text-xs bg-purple-50 text-purple-600 border-purple-200">
+                공모전
+              </Badge>
+            )}
           </div>
           <h3 className="text-sm font-semibold leading-snug line-clamp-2 mt-1 group-hover:text-primary transition-colors">
             {program.title}

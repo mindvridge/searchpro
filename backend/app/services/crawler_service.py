@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crawlers.bizinfo import BizinfoCrawler
 from app.crawlers.kstartup import KStartupCrawler
+from app.crawlers.thinkcontest import ThinkContestCrawler
+from app.crawlers.wevity import WevityCrawler
 from app.database import async_session
 from app.models.crawl_log import CrawlLog
 from app.models.program import Program, ProgramStatus
@@ -84,6 +86,36 @@ async def update_expired_statuses() -> int:
         count = result.rowcount
         logger.info("Updated %d programs to CLOSED status", count)
         return count
+
+
+async def run_thinkcontest_crawl() -> CrawlLogResponse:
+    """씽굿 공모전 크롤러를 실행한다."""
+    logger.info("Starting ThinkContest crawl")
+    before = datetime.now()
+    crawler = ThinkContestCrawler()
+    log: CrawlLog = await crawler.run()
+    logger.info(
+        "ThinkContest crawl done — status=%s, fetched=%d, new=%d, updated=%d, errors=%d",
+        log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
+    )
+    if log.new_count and log.new_count > 0:
+        await _post_crawl_tasks(before)
+    return CrawlLogResponse.model_validate(log)
+
+
+async def run_wevity_crawl() -> CrawlLogResponse:
+    """위비티 공모전 크롤러를 실행한다."""
+    logger.info("Starting Wevity crawl")
+    before = datetime.now()
+    crawler = WevityCrawler()
+    log: CrawlLog = await crawler.run()
+    logger.info(
+        "Wevity crawl done — status=%s, fetched=%d, new=%d, updated=%d, errors=%d",
+        log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
+    )
+    if log.new_count and log.new_count > 0:
+        await _post_crawl_tasks(before)
+    return CrawlLogResponse.model_validate(log)
 
 
 async def find_cross_source_duplicates() -> list[dict]:

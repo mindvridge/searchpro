@@ -8,6 +8,8 @@ from apscheduler.triggers.cron import CronTrigger
 from app.services.crawler_service import (
     run_bizinfo_crawl,
     run_kstartup_crawl,
+    run_thinkcontest_crawl,
+    run_wevity_crawl,
     update_expired_statuses,
 )
 from app.services.alert_service import check_deadline_alerts
@@ -33,6 +35,24 @@ def _register_jobs() -> None:
         CronTrigger(hour="7,19", minute=0, timezone="Asia/Seoul"),
         id="crawl_kstartup",
         name="KStartup 크롤링",
+        replace_existing=True,
+    )
+
+    # 씽굿 공모전 크롤링: 매일 12:00 KST
+    scheduler.add_job(
+        run_thinkcontest_crawl,
+        CronTrigger(hour=12, minute=0, timezone="Asia/Seoul"),
+        id="crawl_thinkcontest",
+        name="ThinkContest 크롤링",
+        replace_existing=True,
+    )
+
+    # 위비티 공모전 크롤링: 매일 12:30 KST
+    scheduler.add_job(
+        run_wevity_crawl,
+        CronTrigger(hour=12, minute=30, timezone="Asia/Seoul"),
+        id="crawl_wevity",
+        name="Wevity 크롤링",
         replace_existing=True,
     )
 

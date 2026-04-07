@@ -15,6 +15,8 @@ from app.schemas.crawl_log import CrawlLogResponse
 from app.services.crawler_service import (
     run_bizinfo_crawl,
     run_kstartup_crawl,
+    run_thinkcontest_crawl,
+    run_wevity_crawl,
     update_expired_statuses,
     find_cross_source_duplicates,
 )
@@ -39,6 +41,18 @@ async def trigger_bizinfo_crawl(_: str = Depends(verify_admin_key)):
 async def trigger_kstartup_crawl(_: str = Depends(verify_admin_key)):
     """K-Startup 수동 크롤링 트리거"""
     return await run_kstartup_crawl()
+
+
+@router.post("/crawl/thinkcontest", response_model=CrawlLogResponse)
+async def trigger_thinkcontest_crawl(_: str = Depends(verify_admin_key)):
+    """씽굿 공모전 수동 크롤링 트리거"""
+    return await run_thinkcontest_crawl()
+
+
+@router.post("/crawl/wevity", response_model=CrawlLogResponse)
+async def trigger_wevity_crawl(_: str = Depends(verify_admin_key)):
+    """위비티 공모전 수동 크롤링 트리거"""
+    return await run_wevity_crawl()
 
 
 @router.get("/crawl/logs", response_model=list[CrawlLogResponse])
