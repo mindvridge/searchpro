@@ -20,6 +20,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ProgramCard, ProgramCardSkeleton } from "@/components/ProgramCard";
 import { usePrograms, useProgramStats } from "@/hooks/usePrograms";
+import { useRecommendations, type RecommendationItem } from "@/hooks/useAI";
+import { useSession } from "next-auth/react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { getDday, getDdayVariant } from "@/lib/date";
+import { Building2, Sparkles } from "lucide-react";
 
 const CATEGORIES = [
   { label: "창업", icon: Rocket, color: "text-orange-500" },
@@ -123,6 +128,9 @@ export default function HomePage() {
       </section>
 
       <div className="container mx-auto px-4 py-12 space-y-12">
+        {/* Recommendations section */}
+        <RecommendationsSection />
+
         {/* Deadline section */}
         <section>
           <div className="flex items-center justify-between mb-6">
@@ -170,5 +178,79 @@ export default function HomePage() {
         </section>
       </div>
     </div>
+  );
+}
+
+function RecommendationsSection() {
+  const { data: session } = useSession();
+  const { data, isLoading } = useRecommendations(6);
+
+  if (isLoading) {
+    return (
+      <section>
+        <div className="flex items-center gap-2 mb-6">
+          <Sparkles className="h-5 w-5 text-[var(--color-teal)]" />
+          <h2 className="text-xl font-bold">추천 지원사업</h2>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => <ProgramCardSkeleton key={i} />)}
+        </div>
+      </section>
+    );
+  }
+
+  if (!data?.items.length) return null;
+
+  return (
+    <section>
+      <div className="mb-6">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-[var(--color-teal)]" />
+          <h2 className="text-xl font-bold">
+            {data.personalized && session?.user?.name
+              ? `${session.user.name}님을 위한 추천`
+              : "인기 지원사업"}
+          </h2>
+        </div>
+        {data.personalized && (
+          <p className="text-sm text-muted-foreground mt-1">프로필 기반 맞춤 추천</p>
+        )}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {data.items.map((item) => (
+          <Link key={item.id} href={`/programs/${item.id}`}>
+            <Card className="group h-full transition-all hover:shadow-md hover:border-primary/20">
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {item.application_end && (
+                    <Badge variant={getDdayVariant(item.application_end)} className="text-xs font-semibold">
+                      {getDday(item.application_end)}
+                    </Badge>
+                  )}
+                  {item.category && <Badge variant="outline" className="text-xs">{item.category}</Badge>}
+                </div>
+                <h3 className="text-sm font-semibold leading-snug line-clamp-2 mt-1 group-hover:text-primary transition-colors">
+                  {item.title}
+                </h3>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-2">
+                {item.organization && (
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Building2 className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{item.organization}</span>
+                  </div>
+                )}
+                {item.support_amount && (
+                  <p className="text-xs font-medium text-[var(--color-teal)]">{item.support_amount}</p>
+                )}
+                <p className="text-xs text-primary/70 font-medium">
+                  {item.reason}
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

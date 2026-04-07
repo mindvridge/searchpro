@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     DATA_GO_KR_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
     RESEND_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""
+    AI_DAILY_SUMMARY_LIMIT: int = 100
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

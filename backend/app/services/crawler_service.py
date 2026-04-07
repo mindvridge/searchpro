@@ -13,12 +13,14 @@ from app.models.crawl_log import CrawlLog
 from app.models.program import Program, ProgramStatus
 from app.schemas.crawl_log import CrawlLogResponse
 from app.services.alert_service import check_keyword_alerts
+from app.services.ai_service import batch_summarize_new_programs
 
 logger = logging.getLogger(__name__)
 
 
-async def _trigger_keyword_alerts_for_new(since: datetime) -> None:
-    """크롤링 이후 새로 생성된 공고에 대해 키워드/카테고리 알림을 트리거한다."""
+async def _post_crawl_tasks(since: datetime) -> None:
+    """크롤링 이후 후속 작업: 키워드 알림 + AI 요약 생성."""
+    # 1. 키워드/카테고리 알림
     try:
         async with async_session() as session:
             result = await session.execute(
@@ -29,6 +31,14 @@ async def _trigger_keyword_alerts_for_new(since: datetime) -> None:
                 await check_keyword_alerts(new_programs)
     except Exception as e:
         logger.warning("Keyword alert check failed: %s", e)
+
+    # 2. AI 요약 일괄 생성 (신규 공고)
+    try:
+        count = await batch_summarize_new_programs(limit=20)
+        if count > 0:
+            logger.info("Post-crawl: generated %d AI summaries", count)
+    except Exception as e:
+        logger.warning("Batch summarize failed: %s", e)
 
 
 async def run_bizinfo_crawl() -> CrawlLogResponse:
@@ -42,7 +52,7 @@ async def run_bizinfo_crawl() -> CrawlLogResponse:
         log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
     )
     if log.new_count and log.new_count > 0:
-        await _trigger_keyword_alerts_for_new(before)
+        await _post_crawl_tasks(before)
     return CrawlLogResponse.model_validate(log)
 
 
@@ -57,7 +67,7 @@ async def run_kstartup_crawl() -> CrawlLogResponse:
         log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
     )
     if log.new_count and log.new_count > 0:
-        await _trigger_keyword_alerts_for_new(before)
+        await _post_crawl_tasks(before)
     return CrawlLogResponse.model_validate(log)
 
 

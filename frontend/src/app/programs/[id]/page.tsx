@@ -1,12 +1,15 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   Bookmark,
+  Bot,
   Building2,
   CalendarDays,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   MapPin,
   Share2,
@@ -19,8 +22,59 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProgram } from "@/hooks/useProgram";
 import { useAddBookmark, useRemoveBookmark } from "@/hooks/useBookmarks";
+import { useProgramSummary } from "@/hooks/useAI";
 import { formatDate, getDday, getDdayVariant } from "@/lib/date";
 import { toast } from "sonner";
+
+function AISummarySection({ programId }: { programId: string }) {
+  const { data, isLoading, error } = useProgramSummary(programId);
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <Card className="mb-6 border-primary/20">
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bot className="h-5 w-5 text-primary" />
+            <CardTitle className="text-base">AI 요약</CardTitle>
+          </div>
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
+      </CardHeader>
+      {expanded && (
+        <CardContent className="pt-0">
+          {isLoading && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                AI가 공고를 분석하고 있습니다...
+              </div>
+              <div className="space-y-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-4 rounded bg-muted animate-pulse" style={{ width: `${85 - i * 10}%` }} />
+                ))}
+              </div>
+            </div>
+          )}
+          {!isLoading && data?.summary && (
+            <div className="text-sm leading-relaxed whitespace-pre-wrap">{data.summary}</div>
+          )}
+          {!isLoading && !data?.summary && (
+            <p className="text-sm text-muted-foreground">
+              {data?.message || "AI 요약을 생성할 수 없습니다."}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
+            AI 요약은 참고용이며, 정확한 내용은 원문을 확인하세요.
+          </p>
+        </CardContent>
+      )}
+    </Card>
+  );
+}
 
 export default function ProgramDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -114,6 +168,9 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
         />
         <InfoItem icon={Users} label="지원대상" value={program.target_type} />
       </div>
+
+      {/* AI Summary */}
+      <AISummarySection programId={id} />
 
       {/* Description */}
       {program.description && (
