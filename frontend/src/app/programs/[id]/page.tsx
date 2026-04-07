@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useProgram } from "@/hooks/useProgram";
+import { ProgramJsonLd } from "@/components/JsonLd";
 import { useAddBookmark, useRemoveBookmark } from "@/hooks/useBookmarks";
 import { useProgramSummary } from "@/hooks/useAI";
 import { formatDate, getDday, getDdayVariant } from "@/lib/date";
@@ -112,6 +113,14 @@ export default function ProgramDetailPage({ params }: { params: Promise<{ id: st
   return (
     <div className="container mx-auto px-4 py-6 max-w-4xl">
       {/* Back */}
+      <ProgramJsonLd
+        title={program.title}
+        organization={program.organization}
+        description={program.description}
+        datePublished={program.created_at}
+        url={typeof window !== "undefined" ? window.location.href : ""}
+      />
+
       <Link href="/programs" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 -ml-2 px-2 py-1 rounded-md hover:bg-secondary">
         <ArrowLeft className="mr-1 h-4 w-4" /> 목록
       </Link>
