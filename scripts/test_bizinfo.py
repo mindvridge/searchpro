@@ -18,13 +18,13 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 
 from app.config import settings
-from app.crawlers.bizinfo import (
-    BizinfoCrawler,
-    _extract_max_amount,
-    _normalize_category,
-    _normalize_region,
-    _determine_status,
-    _parse_date,
+from app.crawlers.bizinfo import BizinfoCrawler
+from app.crawlers.utils import (
+    extract_max_amount as _extract_max_amount,
+    normalize_category as _normalize_category,
+    normalize_region as _normalize_region,
+    determine_status as _determine_status,
+    parse_date as _parse_date,
 )
 from app.models.program import ProgramStatus
 
