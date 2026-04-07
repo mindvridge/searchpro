@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     ANTHROPIC_API_KEY: str = ""
     AI_DAILY_SUMMARY_LIMIT: int = 100
+    ADMIN_EMAILS: str = ""  # comma-separated admin emails
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 
