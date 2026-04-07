@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { Sidebar } from "@/components/layout/Sidebar";
 import { QueryProvider } from "@/lib/queryClient";
 import { AuthProvider } from "@/lib/auth-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -26,23 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ko"
-      className="h-full antialiased"
-    >
+    <html lang="ko" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-        <QueryProvider>
-          <Header />
-          <div className="container mx-auto flex flex-1 gap-6 px-4 py-6">
-            <aside className="hidden w-64 shrink-0 md:block">
-              <Sidebar />
-            </aside>
-            <main className="flex-1 min-w-0">{children}</main>
-          </div>
-          <Footer />
-          <Toaster />
-        </QueryProvider>
+          <QueryProvider>
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <Toaster />
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

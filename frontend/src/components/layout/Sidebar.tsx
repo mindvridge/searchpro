@@ -1,38 +1,54 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Home,
   Search,
   Bookmark,
-  Bell,
+  CalendarDays,
   Settings,
   FileText,
+  Bell,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/", label: "홈", icon: Home },
-  { href: "/search", label: "검색", icon: Search },
-  { href: "/programs", label: "지원사업 목록", icon: FileText },
-  { href: "/bookmarks", label: "관심 사업", icon: Bookmark },
-  { href: "/alerts", label: "알림", icon: Bell },
-  { href: "/settings", label: "설정", icon: Settings },
+  { href: "/programs", label: "지원사업", icon: FileText },
+  { href: "/calendar", label: "캘린더", icon: CalendarDays },
+  { href: "/bookmarks", label: "북마크", icon: Bookmark },
+  { href: "/alerts", label: "알림 설정", icon: Bell },
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <nav className="flex flex-col gap-1 p-4">
-      <h2 className="mb-4 px-2 text-lg font-semibold">메뉴</h2>
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-        >
-          <item.icon className="h-4 w-4" />
-          {item.label}
-        </Link>
-      ))}
+      <div className="px-2 mb-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          메뉴
+        </p>
+      </div>
+      {navItems.map((item) => {
+        const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              isActive
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            )}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
