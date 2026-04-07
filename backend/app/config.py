@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     KAKAO_CLIENT_SECRET: str = ""
     DATA_GO_KR_API_KEY: str = ""
     OPENAI_API_KEY: str = ""
+    RESEND_API_KEY: str = ""
 
     model_config = {"env_file": ".env", "extra": "ignore"}
 

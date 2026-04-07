@@ -1,9 +1,10 @@
 """크롤러 실행 서비스 레이어"""
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import text, update
+from sqlalchemy import select, text, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crawlers.bizinfo import BizinfoCrawler
 from app.crawlers.kstartup import KStartupCrawler
@@ -11,31 +12,52 @@ from app.database import async_session
 from app.models.crawl_log import CrawlLog
 from app.models.program import Program, ProgramStatus
 from app.schemas.crawl_log import CrawlLogResponse
+from app.services.alert_service import check_keyword_alerts
 
 logger = logging.getLogger(__name__)
+
+
+async def _trigger_keyword_alerts_for_new(since: datetime) -> None:
+    """크롤링 이후 새로 생성된 공고에 대해 키워드/카테고리 알림을 트리거한다."""
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                select(Program).where(Program.created_at >= since)
+            )
+            new_programs = list(result.scalars().all())
+            if new_programs:
+                await check_keyword_alerts(new_programs)
+    except Exception as e:
+        logger.warning("Keyword alert check failed: %s", e)
 
 
 async def run_bizinfo_crawl() -> CrawlLogResponse:
     """기업마당 크롤러를 수동 트리거하고 결과 로그를 반환한다."""
     logger.info("Starting BizInfo crawl (manual trigger)")
+    before = datetime.now()
     crawler = BizinfoCrawler()
     log: CrawlLog = await crawler.run()
     logger.info(
         "BizInfo crawl done — status=%s, fetched=%d, new=%d, updated=%d, errors=%d",
         log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
     )
+    if log.new_count and log.new_count > 0:
+        await _trigger_keyword_alerts_for_new(before)
     return CrawlLogResponse.model_validate(log)
 
 
 async def run_kstartup_crawl() -> CrawlLogResponse:
     """K-Startup 크롤러를 수동 트리거하고 결과 로그를 반환한다."""
     logger.info("Starting KStartup crawl (manual trigger)")
+    before = datetime.now()
     crawler = KStartupCrawler()
     log: CrawlLog = await crawler.run()
     logger.info(
         "KStartup crawl done — status=%s, fetched=%d, new=%d, updated=%d, errors=%d",
         log.status, log.total_fetched, log.new_count, log.updated_count, log.error_count,
     )
+    if log.new_count and log.new_count > 0:
+        await _trigger_keyword_alerts_for_new(before)
     return CrawlLogResponse.model_validate(log)
 
 
