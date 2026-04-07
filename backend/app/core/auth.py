@@ -1,11 +1,10 @@
 """JWT 인증 및 비밀번호 해싱 유틸리티"""
 
-from datetime import datetime, timedelta, timezone
-from uuid import UUID
-
 import hashlib
 import hmac
 import secrets
+from datetime import datetime, timedelta, timezone
+from uuid import UUID
 
 from fastapi import Depends, HTTPException, Request, Response
 from joserfc import jwt as jose_jwt
@@ -15,11 +14,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, ProviderType
 
 # ---------------------------------------------------------------------------
 # Password hashing
 # ---------------------------------------------------------------------------
+
 
 def hash_password(password: str) -> str:
     """PBKDF2-SHA256 해싱 (salt 포함)."""
@@ -77,7 +77,6 @@ def decode_token(token: str) -> dict:
     try:
         result = jose_jwt.decode(token, _get_key())
         claims = result.claims
-        # Check expiration
         exp = claims.get("exp")
         if exp and datetime.now(timezone.utc).timestamp() > exp:
             raise HTTPException(status_code=401, detail="Token expired")
@@ -108,6 +107,36 @@ def clear_auth_cookies(response: Response) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Dev-mode demo user
+# ---------------------------------------------------------------------------
+
+DEMO_USER_EMAIL = "demo@searchpro.dev"
+
+
+async def _get_or_create_demo_user(db: AsyncSession) -> User:
+    """개발 모드 전용 데모 사용자를 반환한다."""
+    result = await db.execute(select(User).where(User.email == DEMO_USER_EMAIL))
+    user = result.scalar_one_or_none()
+    if not user:
+        user = User(
+            email=DEMO_USER_EMAIL,
+            name="개발자",
+            provider=ProviderType.EMAIL,
+            password_hash=hash_password("demo1234"),
+            profile={
+                "business_type": "예비창업자",
+                "industry": "IT/SW",
+                "region": "서울",
+                "interests": ["창업", "R&D", "금융/투자"],
+            },
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    return user
+
+
+# ---------------------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------------------
 
@@ -116,7 +145,9 @@ async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    """쿠키 또는 Authorization 헤더에서 JWT를 추출하여 사용자를 반환."""
+    """쿠키 또는 Authorization 헤더에서 JWT를 추출하여 사용자를 반환.
+    개발 모드(ENV=development)에서는 토큰 없이도 데모 사용자를 반환한다.
+    """
     token = request.cookies.get(ACCESS_COOKIE)
     if not token:
         auth_header = request.headers.get("Authorization", "")
@@ -124,6 +155,9 @@ async def get_current_user(
             token = auth_header[7:]
 
     if not token:
+        # 개발 모드: 데모 사용자 자동 반환
+        if not settings.is_production:
+            return await _get_or_create_demo_user(db)
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     payload = decode_token(token)
@@ -145,7 +179,7 @@ async def get_current_user_optional(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
-    """인증이 선택적인 엔드포인트용. 토큰 없으면 None 반환."""
+    """인증이 선택적인 엔드포인트용. 토큰 없으면 None(프로덕션) 또는 데모 사용자(개발)."""
     try:
         return await get_current_user(request, db)
     except HTTPException:

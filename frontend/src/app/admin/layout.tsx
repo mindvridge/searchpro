@@ -29,11 +29,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <div className="flex items-center justify-center min-h-[60vh] text-muted-foreground">로딩 중...</div>;
   }
 
-  // Check admin access
+  // Check admin access (개발 모드에서는 항상 허용)
+  const isDev = process.env.NODE_ENV !== "production";
   const userEmail = session?.user?.email;
-  const isAdmin = userEmail && (ADMIN_EMAILS.length === 0 || ADMIN_EMAILS.includes(userEmail));
+  const isAdmin = isDev || (userEmail && (ADMIN_EMAILS.length === 0 || ADMIN_EMAILS.includes(userEmail)));
 
-  if (!session?.user || !isAdmin) {
+  if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">

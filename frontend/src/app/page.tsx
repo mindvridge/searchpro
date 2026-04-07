@@ -68,14 +68,17 @@ export default function HomePage() {
   const { data: session, status } = useSession();
   const isLoggedIn = !!session?.user;
 
+  // 개발 모드에서는 항상 대시보드 뷰 표시
+  const showLanding = !isLoggedIn && status !== "loading" && process.env.NODE_ENV === "production";
+
   return (
     <>
       <WebsiteJsonLd />
       <HeroSection />
       <CategoryLinks />
       <div className="container mx-auto px-4 py-12 space-y-12">
-        {/* Landing features for anonymous users */}
-        {!isLoggedIn && status !== "loading" && <FeaturesSection />}
+        {/* Landing features for anonymous users (프로덕션만) */}
+        {showLanding && <FeaturesSection />}
 
         {/* Recommendations */}
         <RecommendationsSection />
@@ -84,11 +87,11 @@ export default function HomePage() {
         <DeadlineSection />
         <RecentSection />
 
-        {/* Stats bar for anonymous */}
-        {!isLoggedIn && status !== "loading" && <StatsBar />}
+        {/* Stats bar for anonymous (프로덕션만) */}
+        {showLanding && <StatsBar />}
 
         {/* Newsletter CTA */}
-        {!isLoggedIn && status !== "loading" && <NewsletterCTA />}
+        {showLanding && <NewsletterCTA />}
       </div>
     </>
   );

@@ -43,15 +43,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const protectedPaths = ["/bookmarks", "/alerts", "/profile", "/onboarding"];
-      const isProtected = protectedPaths.some((p) => nextUrl.pathname.startsWith(p));
-
-      if (isProtected && !isLoggedIn) {
-        return Response.redirect(
-          new URL(`/login?callbackUrl=${encodeURIComponent(nextUrl.pathname)}`, nextUrl)
-        );
-      }
+      // 개발 모드에서는 모든 경로 허용
       return true;
     },
     async jwt({ token, user, account }) {

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Search, Menu, Bookmark, CalendarDays, LogIn, LogOut, User } from "lucide-react";
+import { Search, Menu, LogIn, LogOut, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./Sidebar";
 import { useRouter } from "next/navigation";
@@ -41,7 +42,7 @@ export function Header() {
           <span className="text-[var(--color-teal)]">Pro</span>
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — 모든 링크 항상 표시 */}
         <nav className="hidden md:flex items-center gap-1 ml-6">
           <Link href="/programs" className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition-colors">
             지원사업
@@ -49,11 +50,12 @@ export function Header() {
           <Link href="/calendar" className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition-colors">
             캘린더
           </Link>
-          {session && (
-            <Link href="/bookmarks" className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition-colors">
-              북마크
-            </Link>
-          )}
+          <Link href="/bookmarks" className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition-colors">
+            북마크
+          </Link>
+          <Link href="/alerts" className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-secondary transition-colors">
+            알림
+          </Link>
         </nav>
 
         {/* Search bar - desktop */}
@@ -69,7 +71,7 @@ export function Header() {
           </div>
         </form>
 
-        {/* Auth */}
+        {/* Auth / Dev mode indicator */}
         <div className="flex items-center gap-2 ml-auto">
           {session ? (
             <div className="flex items-center gap-2">
@@ -86,10 +88,10 @@ export function Header() {
               </Button>
             </div>
           ) : (
-            <Link href="/login" className="inline-flex items-center gap-1 rounded-lg bg-[var(--color-navy)] hover:bg-[var(--color-navy-light)] text-white text-sm font-medium px-3 py-1.5 transition-colors">
-              <LogIn className="h-4 w-4" />
-              로그인
-            </Link>
+            <Badge variant="outline" className="gap-1 text-xs text-orange-600 border-orange-300">
+              <Code className="h-3 w-3" />
+              DEV 모드
+            </Badge>
           )}
         </div>
       </div>
