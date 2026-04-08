@@ -27,7 +27,7 @@ dist/
 Thumbs.db
 
 # Docker
-pgdata/
+docker/pgdata/
 
 # Misc
 *.log
